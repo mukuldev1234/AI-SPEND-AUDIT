@@ -31,9 +31,7 @@ export const pricingData = {
   },
 };
 
-export function runAudit(
-  tools: any[]
-) {
+export function runAudit(tools: any[]) {
   return tools.map((tool) => {
     const toolData =
       pricingData[
@@ -43,10 +41,8 @@ export function runAudit(
     if (!toolData) {
       return {
         ...tool,
-        currentSpend:
-          tool.spend,
-        recommendedSpend:
-          tool.spend,
+        currentSpend: tool.spend,
+        recommendedSpend: tool.spend,
         savings: 0,
         recommendation:
           "No recommendation found",
@@ -59,43 +55,23 @@ export function runAudit(
       ] || 0;
 
     const estimatedSpend =
-      planPrice *
-      tool.seats;
+      planPrice * tool.seats;
 
     const savings = Math.max(
-      tool.spend -
-        estimatedSpend,
+      tool.spend - estimatedSpend,
       0
     );
 
-    let recommendation =
-      "Current setup looks good";
-
-    if (
-      tool.plan === "Team" &&
-      tool.seats <= 2
-    ) {
-      recommendation =
-        "Downgrade from Team plan to save money";
-    }
-
-    if (savings > 100) {
-      recommendation =
-        "You are overspending significantly. Consider switching plans or using AI credits.";
-    }
-
     return {
       ...tool,
-
-      currentSpend:
-        tool.spend,
-
+      currentSpend: tool.spend,
       recommendedSpend:
         estimatedSpend,
-
       savings,
-
-      recommendation,
+      recommendation:
+        savings > 0
+          ? "You can save money by switching plans."
+          : "Your current setup looks optimized.",
     };
   });
 }
