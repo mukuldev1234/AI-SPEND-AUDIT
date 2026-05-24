@@ -1,65 +1,263 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+
+import toast from "react-hot-toast";
+
+import Hero from "./components/Hero";
+
+import MultiToolForm from "./components/MultiToolForm";
+
+import AuditChart from "./components/AuditChart";
+
+import { runAudit } from "@/utils/auditEngine";
+
+import jsPDF from "jspdf";
+
+import html2canvas from "html2canvas";
 
 export default function Home() {
+  const [tools, setTools] =
+    useState([
+      {
+        tool: "ChatGPT",
+        plan: "Team",
+        spend: 120,
+        seats: 2,
+      },
+    ]);
+
+  const [results, setResults] =
+    useState<any[]>([]);
+
+  const [summary, setSummary] =
+    useState("");
+
+  const handleAudit = () => {
+    const audit =
+      runAudit(tools);
+
+    setResults(audit);
+
+    const totalSavings =
+      audit.reduce(
+        (acc, item) =>
+          acc + item.savings,
+        0
+      );
+
+    setSummary(
+      `Your startup could save approximately $${totalSavings}/month by optimizing AI subscriptions and switching to more efficient plans.`
+    );
+
+    toast.success(
+      "Audit completed"
+    );
+  };
+
+  const exportPDF =
+    async () => {
+      const input =
+        document.getElementById(
+          "report"
+        );
+
+      if (!input) return;
+
+      const canvas =
+        await html2canvas(input);
+
+      const imgData =
+        canvas.toDataURL(
+          "image/png"
+        );
+
+      const pdf =
+        new jsPDF();
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        0,
+        0,
+        210,
+        120
+      );
+
+      pdf.save(
+        "audit-report.pdf"
+      );
+    };
+
+  const totalSavings =
+    results.reduce(
+      (acc, item) =>
+        acc + item.savings,
+      0
+    );
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main>
+      <Hero />
+
+      <section
+        id="audit"
+        className="max-w-6xl mx-auto px-6"
+      >
+        <div className="border rounded-3xl p-8 bg-white/5 backdrop-blur">
+          <h2 className="text-3xl font-bold mb-8">
+            AI Spend Audit
+          </h2>
+
+          <MultiToolForm
+            tools={tools}
+            setTools={setTools}
+          />
+
+          <button
+            onClick={
+              handleAudit
+            }
+            className="mt-8 px-8 py-4 rounded-xl bg-primary text-primary-foreground"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Run Audit
+          </button>
         </div>
-      </main>
-    </div>
+
+        {results.length >
+          0 && (
+          <div
+            id="report"
+            className="mt-12 space-y-8"
+          >
+            <div className="border rounded-3xl p-8 bg-white/5">
+              <h2 className="text-5xl font-bold">
+                ${totalSavings}/mo
+                Saved
+              </h2>
+
+              <p className="mt-2 text-muted-foreground">
+                Annual Savings:
+                $
+                {totalSavings *
+                  12}
+              </p>
+            </div>
+
+            <div className="border rounded-3xl p-8 bg-white/5">
+              <h3 className="text-2xl font-bold mb-6">
+                Savings Chart
+              </h3>
+
+              <AuditChart
+                data={results}
+              />
+            </div>
+
+            <div className="border rounded-3xl p-8 bg-white/5">
+              <h3 className="text-2xl font-bold mb-6">
+                AI Summary
+              </h3>
+
+              <p className="text-lg leading-8">
+                {summary}
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {results.map(
+                (
+                  item,
+                  index
+                ) => (
+                  <div
+                    key={index}
+                    className="border rounded-2xl p-6 bg-white/5"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-2xl font-bold">
+                          {
+                            item.tool
+                          }
+                        </h3>
+
+                        <p className="text-muted-foreground">
+                          {
+                            item.plan
+                          }
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <p className="text-3xl font-bold">
+                          $
+                          {
+                            item.savings
+                          }
+                        </p>
+
+                        <p className="text-green-400">
+                          Savings
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 grid md:grid-cols-3 gap-6">
+                      <div>
+                        <p className="text-muted-foreground">
+                          Current
+                        </p>
+
+                        <h4 className="text-2xl font-bold">
+                          $
+                          {
+                            item.currentSpend
+                          }
+                        </h4>
+                      </div>
+
+                      <div>
+                        <p className="text-muted-foreground">
+                          Recommended
+                        </p>
+
+                        <h4 className="text-2xl font-bold">
+                          $
+                          {
+                            item.recommendedSpend
+                          }
+                        </h4>
+                      </div>
+
+                      <div>
+                        <p className="text-muted-foreground">
+                          Action
+                        </p>
+
+                        <h4 className="font-semibold">
+                          {
+                            item.recommendation
+                          }
+                        </h4>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+
+            <button
+              onClick={
+                exportPDF
+              }
+              className="px-8 py-4 rounded-xl border"
+            >
+              Export PDF
+            </button>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
