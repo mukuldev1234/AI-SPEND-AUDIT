@@ -35,61 +35,31 @@ export function runAudit(
   tools: any[]
 ) {
   return tools.map((tool) => {
-    const toolPlans =
+    const toolData =
       pricingData[
         tool.name as keyof typeof pricingData
       ];
 
-    if (!toolPlans) {
+    if (!toolData) {
       return {
         ...tool,
+        currentSpend:
+          tool.spend,
+        recommendedSpend:
+          tool.spend,
         savings: 0,
         recommendation:
-          "No recommendation available",
+          "No recommendation found",
       };
     }
 
-    const currentPrice =
-      toolPlans[
-        tool.plan as keyof typeof toolPlans
+    const planPrice =
+      toolData[
+        tool.plan as keyof typeof toolData
       ] || 0;
 
-    let recommendedPrice =
-      currentPrice;
-
-    let recommendation =
-      "Current plan is optimal";
-
-    // BASIC AUDIT LOGIC
-
-    if (
-      tool.seats <= 2 &&
-      tool.plan === "Team"
-    ) {
-      recommendedPrice =
-        Math.max(
-          currentPrice - 10,
-          0
-        );
-
-      recommendation =
-        "Downgrade to lower tier";
-    }
-
-    if (
-      tool.spend >
-      currentPrice *
-        tool.seats
-    ) {
-      recommendedPrice =
-        currentPrice;
-
-      recommendation =
-        "You may be overspending compared to official pricing";
-    }
-
     const estimatedSpend =
-      currentPrice *
+      planPrice *
       tool.seats;
 
     const savings = Math.max(
@@ -97,6 +67,22 @@ export function runAudit(
         estimatedSpend,
       0
     );
+
+    let recommendation =
+      "Current setup looks good";
+
+    if (
+      tool.plan === "Team" &&
+      tool.seats <= 2
+    ) {
+      recommendation =
+        "Downgrade from Team plan to save money";
+    }
+
+    if (savings > 100) {
+      recommendation =
+        "You are overspending significantly. Consider switching plans or using AI credits.";
+    }
 
     return {
       ...tool,
