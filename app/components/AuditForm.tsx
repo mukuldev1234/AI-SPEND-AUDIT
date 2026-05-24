@@ -2,166 +2,154 @@
 
 import { useState } from "react";
 
-import { generateAudit } from "../lib/audit";
+import { runAudit } from "../lib/audit";
 
 export default function AuditForm() {
+  const [tools, setTools] =
+    useState([
+      {
+        name: "ChatGPT",
+        plan: "Team",
+        spend: 100,
+        seats: 2,
+      },
+    ]);
+
   const [results, setResults] =
-    useState<any>(null);
+    useState<any[]>([]);
 
-  const [form, setForm] =
-    useState({
-      tool: "ChatGPT Team",
-      seats: 5,
-    });
-
-  const handleSubmit = (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
-
+  const handleAudit = () => {
     const audit =
-      generateAudit([
-        {
-          name: form.tool,
-          seats: Number(
-            form.seats
-          ),
-        },
-      ]);
+      runAudit(tools);
 
     setResults(audit);
   };
 
   return (
-    <section className="py-16">
-      <div className="container-custom">
-        <div className="glass-card rounded-3xl p-8 max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-6">
-            Free AI Spend Audit
-          </h2>
+    <div className="space-y-6">
+      <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+        <input
+          type="text"
+          placeholder="Tool Name"
+          value={tools[0].name}
+          onChange={(e) =>
+            setTools([
+              {
+                ...tools[0],
+                name:
+                  e.target.value,
+              },
+            ])
+          }
+          className="w-full p-3 rounded-xl bg-black/20 border border-white/10"
+        />
 
-          <form
-            onSubmit={
-              handleSubmit
-            }
-            className="space-y-6"
-          >
-            <select
-              className="w-full h-12 px-4 rounded-xl border bg-background"
-              value={form.tool}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  tool:
-                    e.target
-                      .value,
-                })
-              }
-            >
-              <option>
-                ChatGPT Team
-              </option>
+        <input
+          type="text"
+          placeholder="Plan"
+          value={tools[0].plan}
+          onChange={(e) =>
+            setTools([
+              {
+                ...tools[0],
+                plan:
+                  e.target.value,
+              },
+            ])
+          }
+          className="w-full p-3 rounded-xl bg-black/20 border border-white/10"
+        />
 
-              <option>
-                Claude Team
-              </option>
+        <input
+          type="number"
+          placeholder="Monthly Spend"
+          value={tools[0].spend}
+          onChange={(e) =>
+            setTools([
+              {
+                ...tools[0],
+                spend: Number(
+                  e.target.value
+                ),
+              },
+            ])
+          }
+          className="w-full p-3 rounded-xl bg-black/20 border border-white/10"
+        />
 
-              <option>
-                Cursor Business
-              </option>
+        <input
+          type="number"
+          placeholder="Seats"
+          value={tools[0].seats}
+          onChange={(e) =>
+            setTools([
+              {
+                ...tools[0],
+                seats: Number(
+                  e.target.value
+                ),
+              },
+            ])
+          }
+          className="w-full p-3 rounded-xl bg-black/20 border border-white/10"
+        />
 
-              <option>
-                GitHub Copilot Business
-              </option>
-            </select>
+        <button
+          onClick={
+            handleAudit
+          }
+          className="w-full bg-white text-black py-3 rounded-xl font-semibold"
+        >
+          Run Audit
+        </button>
+      </div>
 
-            <input
-              type="number"
-              placeholder="Team Seats"
-              className="w-full h-12 px-4 rounded-xl border bg-background"
-              value={form.seats}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  seats:
-                    Number(
-                      e.target
-                        .value
-                    ),
-                })
-              }
-            />
+      {results.length > 0 && (
+        <div className="space-y-4">
+          {results.map(
+            (
+              item,
+              index
+            ) => (
+              <div
+                key={index}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6"
+              >
+                <h2 className="text-2xl font-bold mb-3">
+                  {item.name}
+                </h2>
 
-            <button className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-medium">
-              Generate Audit
-            </button>
-          </form>
-
-          {results && (
-            <div className="mt-10 space-y-4">
-              <div className="p-6 rounded-2xl bg-primary text-primary-foreground">
-                <h3 className="text-2xl font-bold">
-                  Potential Savings
-                </h3>
-
-                <p className="text-5xl font-bold mt-2">
+                <p>
+                  Current Spend:
                   $
                   {
-                    results.totalMonthlySavings
+                    item.currentSpend
                   }
-                  /mo
                 </p>
 
-                <p className="mt-2">
+                <p>
+                  Recommended Spend:
                   $
                   {
-                    results.totalAnnualSavings
+                    item.recommendedSpend
                   }
-                  /year
+                </p>
+
+                <p>
+                  Savings: $
+                  {item.savings}
+                </p>
+
+                <p className="text-green-400 mt-2">
+                  {
+                    item.recommendation
+                  }
                 </p>
               </div>
-
-              {results.recommendations.map(
-                (
-                  item: any,
-                  index: number
-                ) => (
-                  <div
-                    key={index}
-                    className="border rounded-2xl p-5"
-                  >
-                    <h4 className="font-semibold text-lg">
-                      {
-                        item.name
-                      }
-                    </h4>
-
-                    <p className="mt-2">
-                      {
-                        item.recommendation
-                      }
-                    </p>
-
-                    <p className="text-sm text-muted-foreground mt-2">
-                      {
-                        item.reason
-                      }
-                    </p>
-
-                    <p className="mt-3 font-bold">
-                      Save $
-                      {
-                        item.savings
-                      }
-                      /month
-                    </p>
-                  </div>
-                )
-              )}
-            </div>
+            )
           )}
         </div>
-      </div>
-    </section>
+      )}
+    </div>
   );
 }

@@ -1,52 +1,101 @@
-import { pricingData } from "../data/pricing";
+export const pricingData = {
+  ChatGPT: {
+    Plus: 20,
+    Team: 30,
+    Enterprise: 60,
+  },
 
-export const generateAudit =
-  (tools: any[]) => {
-    let totalMonthlySavings = 0;
+  Claude: {
+    Pro: 20,
+    Team: 30,
+    Enterprise: 60,
+  },
 
-    const recommendations =
-      tools.map((tool) => {
-        const match =
-          pricingData.find(
-            (p) =>
-              p.tool === tool.name
-          );
+  Cursor: {
+    Pro: 20,
+    Business: 40,
+  },
 
-        if (!match) {
-          return {
-            ...tool,
-            savings: 0,
-            recommendation:
-              "Current plan looks optimized.",
-          };
-        }
+  Copilot: {
+    Individual: 10,
+    Business: 19,
+  },
 
-        const savings =
-          (match.monthly -
-            match.altPrice) *
-          tool.seats;
+  Gemini: {
+    Pro: 20,
+    Ultra: 50,
+  },
 
-        totalMonthlySavings +=
-          savings;
+  Windsurf: {
+    Pro: 15,
+  },
+};
 
-        return {
-          ...tool,
+export function runAudit(
+  tools: any[]
+) {
+  return tools.map((tool) => {
+    const toolData =
+      pricingData[
+        tool.name as keyof typeof pricingData
+      ];
 
-          savings,
+    if (!toolData) {
+      return {
+        ...tool,
+        currentSpend:
+          tool.spend,
+        recommendedSpend:
+          tool.spend,
+        savings: 0,
+        recommendation:
+          "No recommendation found",
+      };
+    }
 
-          recommendation: `Switch to ${match.cheaperAlternative}`,
+    const planPrice =
+      toolData[
+        tool.plan as keyof typeof toolData
+      ] || 0;
 
-          reason: match.reason,
-        };
-      });
+    const estimatedSpend =
+      planPrice *
+      tool.seats;
+
+    const savings = Math.max(
+      tool.spend -
+        estimatedSpend,
+      0
+    );
+
+    let recommendation =
+      "Current setup looks good";
+
+    if (
+      tool.plan === "Team" &&
+      tool.seats <= 2
+    ) {
+      recommendation =
+        "Downgrade from Team plan to save money";
+    }
+
+    if (savings > 100) {
+      recommendation =
+        "You are overspending significantly. Consider switching plans or using AI credits.";
+    }
 
     return {
-      recommendations,
+      ...tool,
 
-      totalMonthlySavings,
+      currentSpend:
+        tool.spend,
 
-      totalAnnualSavings:
-        totalMonthlySavings *
-        12,
+      recommendedSpend:
+        estimatedSpend,
+
+      savings,
+
+      recommendation,
     };
-  };
+  });
+}
