@@ -1,52 +1,115 @@
-import { pricingData } from "../data/pricing";
+export const pricingData = {
+  ChatGPT: {
+    Plus: 20,
+    Team: 30,
+    Enterprise: 60,
+  },
 
-export const generateAudit =
-  (tools: any[]) => {
-    let totalMonthlySavings = 0;
+  Claude: {
+    Pro: 20,
+    Team: 30,
+    Enterprise: 60,
+  },
 
-    const recommendations =
-      tools.map((tool) => {
-        const match =
-          pricingData.find(
-            (p) =>
-              p.tool === tool.name
-          );
+  Cursor: {
+    Pro: 20,
+    Business: 40,
+  },
 
-        if (!match) {
-          return {
-            ...tool,
-            savings: 0,
-            recommendation:
-              "Current plan looks optimized.",
-          };
-        }
+  Copilot: {
+    Individual: 10,
+    Business: 19,
+  },
 
-        const savings =
-          (match.monthly -
-            match.altPrice) *
-          tool.seats;
+  Gemini: {
+    Pro: 20,
+    Ultra: 50,
+  },
 
-        totalMonthlySavings +=
-          savings;
+  Windsurf: {
+    Pro: 15,
+  },
+};
 
-        return {
-          ...tool,
+export function runAudit(
+  tools: any[]
+) {
+  return tools.map((tool) => {
+    const toolPlans =
+      pricingData[
+        tool.name as keyof typeof pricingData
+      ];
 
-          savings,
+    if (!toolPlans) {
+      return {
+        ...tool,
+        savings: 0,
+        recommendation:
+          "No recommendation available",
+      };
+    }
 
-          recommendation: `Switch to ${match.cheaperAlternative}`,
+    const currentPrice =
+      toolPlans[
+        tool.plan as keyof typeof toolPlans
+      ] || 0;
 
-          reason: match.reason,
-        };
-      });
+    let recommendedPrice =
+      currentPrice;
+
+    let recommendation =
+      "Current plan is optimal";
+
+    // BASIC AUDIT LOGIC
+
+    if (
+      tool.seats <= 2 &&
+      tool.plan === "Team"
+    ) {
+      recommendedPrice =
+        Math.max(
+          currentPrice - 10,
+          0
+        );
+
+      recommendation =
+        "Downgrade to lower tier";
+    }
+
+    if (
+      tool.spend >
+      currentPrice *
+        tool.seats
+    ) {
+      recommendedPrice =
+        currentPrice;
+
+      recommendation =
+        "You may be overspending compared to official pricing";
+    }
+
+    const estimatedSpend =
+      currentPrice *
+      tool.seats;
+
+    const savings = Math.max(
+      tool.spend -
+        estimatedSpend,
+      0
+    );
 
     return {
-      recommendations,
+      ...tool,
 
-      totalMonthlySavings,
+      currentSpend:
+        tool.spend,
 
-      totalAnnualSavings:
-        totalMonthlySavings *
-        12,
+      recommendedSpend:
+        estimatedSpend,
+
+      savings,
+
+      recommendation,
     };
-  };
+  });
+}
