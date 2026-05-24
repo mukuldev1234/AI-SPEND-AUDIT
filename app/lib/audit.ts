@@ -24,7 +24,6 @@ export function runAudit(
     let recommendation =
       "Your pricing looks optimized.";
 
-    // ChatGPT logic
     if (
       tool.tool
         .toLowerCase()
@@ -42,22 +41,18 @@ export function runAudit(
       }
     }
 
-    // Claude logic
     if (
       tool.tool
         .toLowerCase()
         .includes("claude")
     ) {
-      if (tool.seats <= 2) {
-        recommendedSpend =
-          tool.spend * 0.7;
+      recommendedSpend =
+        tool.spend * 0.7;
 
-        recommendation =
-          "Claude Pro may be sufficient instead of Team.";
-      }
+      recommendation =
+        "Claude Pro may be enough.";
     }
 
-    // Cursor logic
     if (
       tool.tool
         .toLowerCase()
@@ -70,7 +65,6 @@ export function runAudit(
         "Reduce unused Cursor seats.";
     }
 
-    // Copilot logic
     if (
       tool.tool
         .toLowerCase()
@@ -80,7 +74,7 @@ export function runAudit(
         tool.spend * 0.75;
 
       recommendation =
-        "GitHub Copilot Individual could reduce cost.";
+        "Switch to Copilot Individual.";
     }
 
     const savings =
