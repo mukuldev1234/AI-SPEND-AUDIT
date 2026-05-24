@@ -5,15 +5,13 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 import Hero from "./components/Hero";
-
 import MultiToolForm from "./components/MultiToolForm";
-
 import AuditChart from "./components/AuditChart";
 
-import { runAudit } from "@/utils/auditEngine";
+import { runAudit } from "./lib/audit";
+
 
 import jsPDF from "jspdf";
-
 import html2canvas from "html2canvas";
 
 export default function Home() {
@@ -47,11 +45,11 @@ export default function Home() {
       );
 
     setSummary(
-      `Your startup could save approximately $${totalSavings}/month by optimizing AI subscriptions and switching to more efficient plans.`
+      `Your startup could save approximately $${totalSavings}/month by optimizing AI subscriptions and switching to better pricing plans.`
     );
 
     toast.success(
-      "Audit completed"
+      "Audit completed successfully"
     );
   };
 
@@ -102,7 +100,7 @@ export default function Home() {
 
       <section
         id="audit"
-        className="max-w-6xl mx-auto px-6"
+        className="max-w-6xl mx-auto px-6 py-16"
       >
         <div className="border rounded-3xl p-8 bg-white/5 backdrop-blur">
           <h2 className="text-3xl font-bold mb-8">
@@ -118,7 +116,7 @@ export default function Home() {
             onClick={
               handleAudit
             }
-            className="mt-8 px-8 py-4 rounded-xl bg-primary text-primary-foreground"
+            className="mt-8 px-8 py-4 rounded-xl bg-black text-white dark:bg-white dark:text-black"
           >
             Run Audit
           </button>
@@ -132,13 +130,13 @@ export default function Home() {
           >
             <div className="border rounded-3xl p-8 bg-white/5">
               <h2 className="text-5xl font-bold">
-                ${totalSavings}/mo
-                Saved
+                $
+                {totalSavings}
+                /mo Saved
               </h2>
 
               <p className="mt-2 text-muted-foreground">
-                Annual Savings:
-                $
+                Annual Savings: $
                 {totalSavings *
                   12}
               </p>

@@ -1,77 +1,104 @@
-export const pricingData = {
-  ChatGPT: {
-    Plus: 20,
-    Team: 30,
-    Enterprise: 60,
-  },
+export interface ToolInput {
+  tool: string;
+  plan: string;
+  spend: number;
+  seats: number;
+}
 
-  Claude: {
-    Pro: 20,
-    Team: 30,
-    Enterprise: 60,
-  },
+export interface AuditResult {
+  tool: string;
+  plan: string;
+  currentSpend: number;
+  recommendedSpend: number;
+  savings: number;
+  recommendation: string;
+}
 
-  Cursor: {
-    Pro: 20,
-    Business: 40,
-  },
-
-  Copilot: {
-    Individual: 10,
-    Business: 19,
-  },
-
-  Gemini: {
-    Pro: 20,
-    Ultra: 50,
-  },
-
-  Windsurf: {
-    Pro: 15,
-  },
-};
-
-export function runAudit(tools: any[]) {
+export function runAudit(
+  tools: ToolInput[]
+): AuditResult[] {
   return tools.map((tool) => {
-    const toolData =
-      pricingData[
-        tool.name as keyof typeof pricingData
-      ];
+    let recommendedSpend =
+      tool.spend;
 
-    if (!toolData) {
-      return {
-        ...tool,
-        currentSpend: tool.spend,
-        recommendedSpend: tool.spend,
-        savings: 0,
-        recommendation:
-          "No recommendation found",
-      };
+    let recommendation =
+      "Your pricing looks optimized.";
+
+    // ChatGPT logic
+    if (
+      tool.tool
+        .toLowerCase()
+        .includes("chatgpt")
+    ) {
+      if (
+        tool.plan === "Team" &&
+        tool.seats <= 2
+      ) {
+        recommendedSpend =
+          tool.spend * 0.5;
+
+        recommendation =
+          "Downgrade from Team to Plus plan.";
+      }
     }
 
-    const planPrice =
-      toolData[
-        tool.plan as keyof typeof toolData
-      ] || 0;
+    // Claude logic
+    if (
+      tool.tool
+        .toLowerCase()
+        .includes("claude")
+    ) {
+      if (tool.seats <= 2) {
+        recommendedSpend =
+          tool.spend * 0.7;
 
-    const estimatedSpend =
-      planPrice * tool.seats;
+        recommendation =
+          "Claude Pro may be sufficient instead of Team.";
+      }
+    }
 
-    const savings = Math.max(
-      tool.spend - estimatedSpend,
-      0
-    );
+    // Cursor logic
+    if (
+      tool.tool
+        .toLowerCase()
+        .includes("cursor")
+    ) {
+      recommendedSpend =
+        tool.spend * 0.8;
+
+      recommendation =
+        "Reduce unused Cursor seats.";
+    }
+
+    // Copilot logic
+    if (
+      tool.tool
+        .toLowerCase()
+        .includes("copilot")
+    ) {
+      recommendedSpend =
+        tool.spend * 0.75;
+
+      recommendation =
+        "GitHub Copilot Individual could reduce cost.";
+    }
+
+    const savings =
+      tool.spend -
+      recommendedSpend;
 
     return {
-      ...tool,
-      currentSpend: tool.spend,
+      tool: tool.tool,
+      plan: tool.plan,
+      currentSpend:
+        tool.spend,
       recommendedSpend:
-        estimatedSpend,
-      savings,
-      recommendation:
-        savings > 0
-          ? "You can save money by switching plans."
-          : "Your current setup looks optimized.",
+        Math.round(
+          recommendedSpend
+        ),
+      savings:
+        Math.round(savings),
+      recommendation,
     };
   });
 }

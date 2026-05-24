@@ -8,7 +8,7 @@ export default function AuditForm() {
   const [tools, setTools] =
     useState([
       {
-        name: "ChatGPT",
+        tool: "ChatGPT",
         plan: "Team",
         spend: 100,
         seats: 2,
@@ -31,12 +31,12 @@ export default function AuditForm() {
         <input
           type="text"
           placeholder="Tool Name"
-          value={tools[0].name}
+          value={tools[0].tool}
           onChange={(e) =>
             setTools([
               {
                 ...tools[0],
-                name:
+                tool:
                   e.target.value,
               },
             ])
@@ -116,12 +116,11 @@ export default function AuditForm() {
                 className="bg-white/5 border border-white/10 rounded-2xl p-6"
               >
                 <h2 className="text-2xl font-bold mb-3">
-                  {item.name}
+                  {item.tool}
                 </h2>
 
                 <p>
-                  Current Spend:
-                  $
+                  Current Spend: $
                   {
                     item.currentSpend
                   }
